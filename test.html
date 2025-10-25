@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Testing Event Listeners</h1>
+    <button id="uploadBtn">Test Upload Button</button>
+    <button id="retrieveBtn">Test Retrieve Button</button>
+    
+    <script type="module">
+        // Test the event listener setup
+        function setupEventListeners() {
+            const uploadBtn = document.getElementById("uploadBtn");
+            const retrieveBtn = document.getElementById("retrieveBtn");
+            
+            if (uploadBtn) {
+                uploadBtn.addEventListener("click", () => alert("Upload button works!"));
+                console.log("✅ Upload button event listener added");
+            } else {
+                console.warn("❌ uploadBtn not found");
+            }
+            
+            if (retrieveBtn) {
+                retrieveBtn.addEventListener("click", () => alert("Retrieve button works!"));
+                console.log("✅ Retrieve button event listener added");
+            } else {
+                console.warn("❌ retrieveBtn not found");
+            }
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupEventListeners);
+        } else {
+            setupEventListeners();
+        }
+    </script>
+</body>
+</html>

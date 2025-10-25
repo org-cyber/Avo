@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decentralized Storage - Polygon Amoy</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background gradient animation */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 20% 50%, rgba(139, 255, 166, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(139, 255, 166, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 20%, rgba(139, 255, 166, 0.08) 0%, transparent 50%);
+      animation: gradientShift 20s ease infinite;
+      z-index: 0;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-10%, -10%) rotate(180deg); }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    h1 {
+      font-size: clamp(2em, 5vw, 3.5em);
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, #8bffa6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -2px;
+      margin-bottom: 15px;
+    }
+
+    .subtitle {
+      font-size: clamp(1em, 2.5vw, 1.2em);
+      color: #888;
+      font-weight: 300;
+      margin-bottom: 20px;
+    }
+
+    #walletAddress {
+      display: inline-block;
+      padding: 12px 30px;
+      background: rgba(139, 255, 166, 0.1);
+      border: 1px solid rgba(139, 255, 166, 0.3);
+      border-radius: 50px;
+      font-weight: 600;
+      margin-top: 20px;
+      font-size: clamp(0.85em, 2vw, 1em);
+      word-break: break-all;
+      max-width: 90%;
+    }
+
+    .section {
+      background: rgba(20, 20, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 40px);
+      margin-bottom: 30px;
+      backdrop-filter: blur(20px);
+      transition: all 0.4s ease;
+    }
+
+    .section:hover {
+      border-color: rgba(139, 255, 166, 0.2);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(139, 255, 166, 0.1);
+    }
+
+    .section h2 {
+      font-size: clamp(1.3em, 3vw, 1.8em);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: clamp(20px, 3vw, 28px);
+      background: linear-gradient(180deg, #8bffa6 0%, #4ade80 100%);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .section-header h2 {
+      margin-bottom: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #ccc;
+      font-size: clamp(0.85em, 1.5vw, 0.95em);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="file"],
+    input[type="text"] {
+      width: 100%;
+      padding: clamp(12px, 2vw, 16px) clamp(15px, 2.5vw, 20px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: #fff;
+      font-size: clamp(14px, 2vw, 16px);
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    input[type="file"]:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #8bffa6;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 4px rgba(139, 255, 166, 0.1);
+    }
+
+    input[type="text"]::placeholder {
+      color: #555;
+    }
+
+    input[type="file"] {
+      cursor: pointer;
+      padding: clamp(15px, 2.5vw, 20px);
+    }
+
+    input[type="file"]::file-selector-button {
+      background: linear-gradient(135deg, #8bffa6 0%, #4ade80 100%);
+      color: #000;
+      border: none;
+      padding: clamp(8px, 1.5vw, 10px) clamp(15px, 2.5vw, 20px);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 15px;
+      transition: all 0.3s ease;
+      font-size: clamp(13px, 1.8vw, 15px);
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(139, 255, 166, 0.3);
+    }
+
+    button {
+      width: 100%;
+      padding: clamp(14px, 2.5vw, 18px) clamp(20px, 3vw, 30px);
+      background: linear-gradient(135deg, #8bffa6 0%, #4ade80 100%);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-size: clamp(14px, 2vw, 16px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(139, 255, 166, 0.4);
+    }
+
+    button:active {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button:disabled:hover {
+      box-shadow: none;
+    }
+
+    button:disabled::before {
+      display: none;
+    }
+
+    #refreshFilesBtn {
+      width: auto;
+      padding: clamp(10px, 1.8vw, 12px) clamp(18px, 2.5vw, 24px);
+      background: rgba(139, 255, 166, 0.1);
+      color: #8bffa6;
+      border: 1px solid rgba(139, 255, 166, 0.3);
+      font-size: clamp(13px, 1.8vw, 14px);
+      white-space: nowrap;
+    }
+
+    #refreshFilesBtn:hover {
+      background: rgba(139, 255, 166, 0.2);
+      border-color: #8bffa6;
+    }
+
+    .file-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: clamp(15px, 2.5vw, 25px);
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .file-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #8bffa6 0%, #4ade80 100%);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    .file-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(139, 255, 166, 0.3);
+      transform: translateX(5px);
+    }
+
+    .file-item:hover::before {
+      transform: scaleY(1);
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-info h4 {
+      margin: 0 0 12px 0;
+      color: #fff;
+      font-size: clamp(1em, 2vw, 1.2em);
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .file-info p {
+      margin: 6px 0;
+      color: #888;
+      font-size: clamp(0.85em, 1.5vw, 0.9em);
+      word-break: break-all;
+    }
+
+    .view-btn {
+      background: rgba(139, 255, 166, 0.1);
+      color: #8bffa6;
+      border: 1px solid rgba(139, 255, 166, 0.3);
+      border-radius: 10px;
+      padding: clamp(10px, 1.8vw, 12px) clamp(18px, 2.5vw, 24px);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      font-size: clamp(13px, 1.8vw, 14px);
+      width: auto;
+    }
+
+    .view-btn:hover {
+      background: #8bffa6;
+      color: #000;
+      transform: scale(1.05);
+    }
+
+    #fileProgressContainer {
+      margin-top: 20px;
+    }
+
+    .file-progress {
+      margin-bottom: 15px;
+      padding: clamp(12px, 2vw, 15px) clamp(15px, 2.5vw, 20px);
+      background: rgba(139, 255, 166, 0.05);
+      border-left: 4px solid #8bffa6;
+      border-radius: 8px;
+      font-size: clamp(0.85em, 1.5vw, 0.95em);
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Secure file viewer */
+    #fileViewer {
+      margin-top: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(139, 255, 166, 0.2);
+      border-radius: 16px;
+      padding: clamp(15px, 2.5vw, 20px);
+      min-height: clamp(200px, 30vw, 300px);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .secure-preview {
+      max-width: 100%;
+      max-height: clamp(400px, 50vw, 600px);
+      border-radius: 10px;
+      user-select: none;
+      pointer-events: none;
+      object-fit: contain;
+    }
+
+    /* Watermark overlay */
+    #watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      font-size: clamp(2em, 6vw, 4em);
+      color: rgba(255, 255, 255, 0.05);
+      font-weight: 700;
+      pointer-events: none;
+      user-select: none;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    #fileList {
+      font-size: clamp(0.9em, 1.8vw, 1em);
+    }
+
+    #fileList > p {
+      color: #888;
+      padding: 20px;
+      text-align: center;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      header {
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        letter-spacing: -1px;
+      }
+
+      .section {
+        margin-bottom: 20px;
+      }
+
+      .section:hover {
+        transform: translateY(-2px);
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .section-header h2 {
+        min-width: auto;
+      }
+
+      #refreshFilesBtn {
+        width: 100%;
+      }
+
+      .file-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 20px;
+      }
+
+      .file-item:hover {
+        transform: translateX(0) translateY(-2px);
+      }
+
+      .view-btn {
+        width: 100%;
+      }
+
+      input[type="file"]::file-selector-button {
+        margin-right: 10px;
+        margin-bottom: 5px;
+      }
+
+      #watermark {
+        font-size: 1.5em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 15px 10px;
+      }
+
+      .section {
+        border-radius: 16px;
+      }
+
+      .section h2 {
+        font-size: 1.2em;
+      }
+
+      .section h2::before {
+        height: 18px;
+      }
+
+      #walletAddress {
+        padding: 10px 20px;
+        font-size: 0.8em;
+      }
+
+      .file-info h4 {
+        font-size: 1em;
+        margin-bottom: 8px;
+      }
+
+      .file-info p {
+        font-size: 0.8em;
+      }
+    }
+
+    /* Landscape mobile optimization */
+    @media (max-height: 600px) and (orientation: landscape) {
+      header {
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      .section {
+        padding: 20px;
+        margin-bottom: 15px;
+      }
+
+      #fileViewer {
+        min-height: 150px;
+      }
+
+      .secure-preview {
+        max-height: 300px;
+      }
+    }
+
+    /* Tablet optimization */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .container {
+        padding: 30px 25px;
+      }
+
+      .file-item {
+        flex-wrap: nowrap;
+      }
+
+      .view-btn {
+        width: auto;
+      }
+    }
+
+    /* Large screen optimization */
+    @media (min-width: 1400px) {
+      body::before {
+        width: 150%;
+        height: 150%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Share Data Securely</h1>
+      <p class="subtitle">Build Trust Instantly!</p>
+      <div id="walletAddress">Connecting to wallet...</div>
+    </header>
+
+    <!-- Upload Section -->
+    <div class="section">
+      <h2>Upload Encrypted Files</h2>
+      <div class="form-group">
+        <label for="fileInput">Select Files:</label>
+        <input type="file" id="fileInput" multiple accept="*/*">
+      </div>
+      <div class="form-group">
+        <label for="authorizedAddress">Authorized Wallet Address:</label>
+        <input type="text" id="authorizedAddress" placeholder="0x...">
+      </div>
+      <button id="uploadBtn">🔐 Encrypt & Upload to Blockchain</button>
+      <div id="fileProgressContainer"></div>
+    </div>
+
+    <!-- Authorized Files Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2>Your Authorized Files</h2>
+        <button id="refreshFilesBtn">🔄 Refresh Files</button>
+      </div>
+      <div id="fileList">
+        <p>🔍 Checking for authorized files...</p>
+      </div>
+    </div>
+
+    <!-- Secure Viewer -->
+    <div id="fileViewer">
+      <div id="watermark">Protected File - View Only</div>
+      <p style="color:#777;">🔒 Select a file above to view it securely here</p>
+    </div>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
