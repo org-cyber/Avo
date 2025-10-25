@@ -225,7 +225,7 @@ This project is open source and available under the MIT License.
 5. Submit a pull request
 
 ## PITCH DECK : https://docs.google.com/presentation/d/17kSUnwSF-1Z9ji3WOUykSCPo-H9yGDtaaCrc-UbEhI4/edit?usp=sharing
-## DEPLOY LINK: avo101.netlify.app
+## DEPLOY LINK: https://avo101.netlify.app
 ## Demo Video Link: https://www.veed.io/view/fcc6399b-650a-453b-90b3-adcc8f1e72bb?source=editor&panel=share
 
 **Built with ❤️ for the decentralized web**
