@@ -11,6 +11,7 @@ A comprehensive decentralized file storage system built on Polygon Amoy blockcha
 - **📱 Responsive Design**: Works on desktop and mobile devices
 - **🔍 File Discovery**: Easy file retrieval by ID or from authorized files list
 - **📊 Access Logging**: Blockchain-based access tracking
+- **💾 Secure Downloads**: Decrypt and download files with original filenames and extensions preserved
 
 ## 🚀 Quick Start
 
@@ -98,13 +99,19 @@ python server.py
 2. **Upload Files**: 
    - Select files to upload
    - Enter authorized wallet address
+   - Files are automatically encrypted before upload
+   - Original filenames and extensions are preserved for later download
    - Click "Encrypt & Upload to Blockchain"
 3. **Monitor Progress**: Watch the upload progress for each file
 
 ### For File Recipients:
 1. **Connect Authorized Wallet**: Use the wallet address that was authorized
 2. **View Authorized Files**: Files will automatically appear in "Your Authorized Files"
-3. **Download Files**: Click "Decrypt & Download" to retrieve files
+3. **View & Download**: 
+   - Click "Decrypt & Download" to retrieve files
+   - The file will be automatically decrypted
+   - Files are downloaded with their original filename and extension
+   - Preview is available for supported file types (images, PDFs)
 4. **Manual Retrieval**: Use "Retrieve File by ID" for specific files
 
 ## 🔧 Configuration
@@ -170,30 +177,29 @@ frontend/
 - Only encrypted data is stored on IPFS
 - Keys are encrypted for each recipient
 
-## 🐛 Troubleshooting
+## ❓ Troubleshooting
 
 ### Common Issues
 
+#### File Download Problems
+- **Issue**: Downloaded files have incorrect extensions
+  - **Solution**: Make sure you're using the latest version which preserves original file extensions
+  - **Technical Details**: The application now stores original filenames in localStorage during upload
+
+#### Decryption Errors
+- **Issue**: "Failed to decrypt file" error message
+  - **Solution**: Verify you're using the correct authorized wallet address
+  - **Technical Details**: Only the wallet addresses specified during upload can decrypt the files
+
 #### MetaMask Connection
-- **Error**: "MetaMask extension not found"
-  - **Solution**: Install MetaMask extension and refresh
+- **Issue**: "Please connect to MetaMask" error persists
+  - **Solution**: Refresh the page and try connecting again
+  - **Technical Details**: Sometimes the connection to MetaMask needs to be re-established
 
-- **Error**: "Connection rejected"
-  - **Solution**: Click "Connect" in MetaMask popup
-
-#### File Upload Issues
-- **Error**: "IPFS upload failed"
-  - **Solution**: Check Pinata JWT token and API limits
-
-- **Error**: "Transaction failed"
-  - **Solution**: Ensure you have enough MATIC for gas fees
-
-#### File Retrieval Issues
-- **Error**: "Not authorized to decrypt"
-  - **Solution**: Use the wallet address that was authorized
-
-- **Error**: "Failed to fetch metadata"
-  - **Solution**: Check IPFS gateway connectivity
+#### IPFS Gateway Timeouts
+- **Issue**: Files take too long to load or timeout
+  - **Solution**: Try again later as Pinata gateway might be experiencing high traffic
+  - **Technical Details**: The application uses Pinata's public gateway which may have rate limits
 
 ### Debug Mode
 Enable console logging by opening browser developer tools (F12) to see detailed error messages and transaction logs.
